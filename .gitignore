@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+Backend/node_modules/
+Frontend/node_modules/
+ai-agent/venv/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+Backend/.env
+Frontend/.env
+ai-agent/.env
+
+# Next.js
+Frontend/.next/
+Frontend/out/
+
+# Production
+build/
+Backend/dist/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AI Agent Specific
+ai-agent/__pycache__/
+ai-agent/*.pyc
+ai-agent/.agent/

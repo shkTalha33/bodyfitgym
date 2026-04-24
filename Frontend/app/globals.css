@@ -1,0 +1,75 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+:root {
+  --background: #020617;
+  --foreground: #e2e8f0;
+  --surface: #0b1222;
+  --surface-soft: #101a30;
+  --surface-muted: #17223a;
+  --surface-strong: #1f2d4d;
+  --border: #273a5f;
+  --accent: #8b5cf6;
+  --accent-soft: #5b4bd91f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.surface-soft {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.panel-heading {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: #93a4c7;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate3d(8px, -14px, 0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate3d(-4px, -26px, 0);
+    opacity: 0.1;
+  }
+}
+
+.particle-dot {
+  animation-name: drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
