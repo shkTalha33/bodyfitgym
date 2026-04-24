@@ -1,12 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo } from "react";
-import { useAppSelector } from "@/hooks/redux";
+import { Montserrat } from "next/font/google";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { logoutLocally } from "@/store/slices/authSlice";
 import { Avatar, Button, Dropdown } from "@heroui/react";
-import { Bell, Bot, Dumbbell, Home, Salad, Sparkles, Target, TrendingUp } from "lucide-react";
+import { Bell, Bot, Dumbbell, Home, Salad, Sparkles, Target, TrendingUp, UserRound } from "lucide-react";
 import ParticleBackground from "@/components/particle-background";
+
+const dashboardFont = Montserrat({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  style: ["normal", "italic"],
+});
 
 const links = [
   { href: "/dashboard", label: "Dashboard", short: "Home", icon: Home },
@@ -15,11 +24,27 @@ const links = [
   { href: "/dashboard/workouts", label: "Workouts", short: "Train", icon: Dumbbell },
   { href: "/dashboard/progress", label: "Progress", short: "Stats", icon: TrendingUp },
   { href: "/dashboard/coach", label: "AI Coach", short: "Coach", icon: Bot },
+  { href: "/dashboard/profile", label: "Profile", short: "Profile", icon: UserRound },
 ];
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+
+  const handleUserMenu = useCallback(
+    (key: string | number) => {
+      const k = String(key);
+      if (k === "profile") router.push("/dashboard/profile");
+      else if (k === "settings") router.push("/dashboard/notifications");
+      else if (k === "logout") {
+        dispatch(logoutLocally());
+        router.push("/auth/login");
+      }
+    },
+    [dispatch, router]
+  );
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -29,28 +54,34 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="relative h-screen bg-[radial-gradient(circle_at_10%_0%,#7c3aed33_0%,transparent_28%),radial-gradient(circle_at_80%_100%,#0ea5e933_0%,transparent_26%),linear-gradient(180deg,#030918_0%,#020617_100%)] overflow-hidden">
-      <ParticleBackground />
+    <div
+      className={`${dashboardFont.className} relative h-screen overflow-hidden bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(244,30,30,0.12),transparent),radial-gradient(ellipse_60%_40%_at_100%_100%,rgba(244,30,30,0.06),transparent),linear-gradient(180deg,#0a0a0a_0%,#0f0f0f_100%)]`}
+    >
+      <ParticleBackground variant="bodyfit" />
       <div className="relative flex h-full w-full">
         <aside className="sticky top-0 hidden h-screen w-72 border-r border-[var(--border)] bg-[var(--surface)] px-5 py-6 md:block flex-shrink-0 overflow-y-auto">
-          <div className="mb-7 flex items-center gap-3 px-2">
-            <div className="rounded-xl bg-[var(--accent-soft)] p-2.5">
-              <Dumbbell size={18} className="text-violet-300" />
-            </div>
-            <div>
-              <p className="panel-heading">Website</p>
-              <h2 className="text-lg font-semibold tracking-wide">GYM AI</h2>
-            </div>
-          </div>
+<div className="flex justify-center">
+
+          <Link href="/dashboard" className="mb-7 flex items-center gap-3 px-2 transition-opacity hover:opacity-90">
+            <Image
+              src="/images/logo/bodyfitlogo.png"
+              alt="Body Fit"
+              width={160}
+              height={48}
+              className="h-11 w-auto max-w-[9.5rem] object-contain object-left"
+              priority
+            />
+          </Link>
+</div>
           <nav className="space-y-1">
             {links.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                   pathname === item.href
-                    ? "bg-gradient-to-r from-violet-600 to-indigo-500 text-white shadow-lg shadow-violet-500/20"
-                    : "text-slate-300 hover:bg-[var(--surface-muted)]"
+                    ? "bg-[#F41E1E] text-white shadow-lg shadow-[#F41E1E]/25"
+                    : "text-neutral-300 hover:bg-[var(--surface-muted)]"
                 }`}
               >
                 <item.icon size={16} />
@@ -61,22 +92,27 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </aside>
         <div className="flex h-screen w-full flex-col overflow-hidden">
           <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--surface)]/90 px-4 py-3 backdrop-blur md:px-6 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="panel-heading">Welcome back</p>
-                <h1 className="text-base font-semibold md:text-lg">
-                  {greeting}, {user?.name ?? "Athlete"}
-                </h1>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="min-w-0">
+                  <p className="panel-heading">Welcome back</p>
+                  <h1 className="text-base font-semibold md:text-lg">
+                    {greeting}, {user?.name ?? "Athlete"}
+                  </h1>
+                </div>
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="tertiary" className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-slate-300">
-                  <Sparkles size={15} />
+                <Button
+                  variant="tertiary"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-neutral-200"
+                >
+                  <Sparkles size={15} className="text-[#F41E1E]" />
                   AI Mode Active
                 </Button>
                 <Dropdown>
                   <Dropdown.Trigger>
                     <Button isIconOnly variant="secondary" className="relative rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]" aria-label="Notifications">
-                      <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
+                      <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#F41E1E]" />
                       <Bell size={16} />
                     </Button>
                   </Dropdown.Trigger>
@@ -99,14 +135,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     </Button>
                   </Dropdown.Trigger>
                   <Dropdown.Popover>
-                    <Dropdown.Menu>
-                      <Dropdown.Item id="profile">
-                        <Link href="/dashboard/profile">Profile</Link>
+                    <Dropdown.Menu onAction={handleUserMenu}>
+                      <Dropdown.Item id="profile" textValue="Profile">
+                        Profile
                       </Dropdown.Item>
-                      <Dropdown.Item id="settings">
-                        <Link href="/dashboard/notifications">Settings</Link>
+                      <Dropdown.Item id="settings" textValue="Settings">
+                        Settings
                       </Dropdown.Item>
-                      <Dropdown.Item id="logout" className="text-red-500">
+                      <Dropdown.Item id="logout" className="text-red-500" textValue="Logout">
                         Logout
                       </Dropdown.Item>
                     </Dropdown.Menu>
@@ -123,8 +159,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-1 flex-col items-center justify-center rounded-md px-2 py-2 text-center text-[11px] ${
-              pathname === item.href ? "bg-violet-600 text-white" : "text-slate-300"
+            className={`flex flex-1 flex-col items-center justify-center rounded-md px-2 py-2 text-center text-[11px] font-semibold ${
+              pathname === item.href ? "bg-[#F41E1E] text-white" : "text-neutral-400"
             }`}
           >
             <item.icon size={14} />

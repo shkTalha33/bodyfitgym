@@ -1,113 +1,102 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { Button, Card, Input } from "@heroui/react";
-import { Ruler, Target, UserRound, Weight } from "lucide-react";
+import ProfilePreferencesModal from "@/components/profile-preferences-modal";
+import ProfilePreferencesForm from "@/components/profile-preferences-form";
+import api from "@/lib/api";
+import { normalizeUser, type AuthUser } from "@/lib/user-normalize";
+import { setAuthUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { Button, Card } from "@heroui/react";
+import { Pencil } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
-const profileSchema = z.object({
-  fullName: z.string().min(2, "Name is required"),
-  age: z.number().min(12).max(90),
-  heightCm: z.number().min(100).max(250),
-  weightKg: z.number().min(30).max(250),
-  goal: z.string().min(2),
-  dietType: z.string().min(2),
-  fitnessLevel: z.string().min(2),
-  schedule: z.string().min(2),
-});
+export default function ProfilePage() {
+  const dispatch = useAppDispatch();
+  const reduxUser = useAppSelector((s) => s.auth.user);
+  const [profile, setProfile] = useState<AuthUser | null>(reduxUser);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [savedHint, setSavedHint] = useState(false);
 
-type ProfileForm = z.infer<typeof profileSchema>;
+  const load = useCallback(async () => {
+    const { data } = await api.get("/users/me");
+    const u = normalizeUser(data as Record<string, unknown>);
+    if (u) {
+      setProfile(u);
+      dispatch(setAuthUser(u));
+    }
+  }, [dispatch]);
 
-export default function ProfileSetupPage() {
-  const [saved, setSaved] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ProfileForm>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      fullName: "",
-      age: 25,
-      heightCm: 175,
-      weightKg: 70,
-      goal: "Fat loss",
-      dietType: "High protein",
-      fitnessLevel: "Intermediate",
-      schedule: "Mon, Wed, Fri",
-    },
-  });
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  const onSubmit = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setSaved(true);
-  };
+  useEffect(() => {
+    if (reduxUser) setProfile(reduxUser);
+  }, [reduxUser]);
+
+  const u = profile;
 
   return (
     <section className="space-y-5 pb-20 md:pb-4">
-      <div>
-        <h2 className="text-2xl font-semibold">Profile Setup</h2>
-        <p className="text-sm text-slate-400">Set body metrics and training preferences for precision coaching.</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-white">Profile</h2>
+          <p className="text-sm text-slate-400">
+            Update your details below. Email is shown for reference only and cannot be edited here. These values drive all
+            AI features.
+          </p>
+        </div>
+        <Button className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-white md:hidden" onClick={() => setModalOpen(true)}>
+          <span className="flex items-center gap-2">
+            <Pencil size={16} /> Quick edit
+          </span>
+        </Button>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Current Weight", value: "70 kg", icon: Weight },
-          { label: "Height", value: "175 cm", icon: Ruler },
-          { label: "Goal", value: "Fat Loss", icon: Target },
-          { label: "Level", value: "Intermediate", icon: UserRound },
-        ].map((item) => (
-          <Card key={item.label} className="surface-soft rounded-2xl bg-[var(--surface-soft)]">
-            <Card.Content className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-slate-400">{item.label}</p>
-                <p className="text-base font-semibold">{item.value}</p>
-              </div>
-              <item.icon size={18} className="text-violet-300" />
-            </Card.Content>
-          </Card>
-        ))}
-      </div>
-      <Card className="surface-card rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
-        <Card.Content>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {[
-                { name: "fullName", label: "Full name", type: "text" },
-                { name: "age", label: "Age", type: "number" },
-                { name: "heightCm", label: "Height (cm)", type: "number" },
-                { name: "weightKg", label: "Weight (kg)", type: "number" },
-                { name: "goal", label: "Primary goal", type: "text" },
-                { name: "dietType", label: "Diet type", type: "text" },
-                { name: "fitnessLevel", label: "Fitness level", type: "text" },
-                { name: "schedule", label: "Workout schedule", type: "text" },
-              ].map((field) => (
-                <div key={field.name}>
-                  <p className="mb-1 text-sm font-medium text-slate-200">{field.label}</p>
-                  <Input
-                    type={field.type}
-                    className="bg-[var(--surface-soft)]"
-                    {...register(
-                      field.name as keyof ProfileForm,
-                      field.type === "number" ? { valueAsNumber: true } : {}
-                    )}
-                  />
-                  {errors[field.name as keyof ProfileForm] && (
-                    <p className="mt-1 text-xs text-red-500">{errors[field.name as keyof ProfileForm]?.message as string}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex items-center gap-3">
-              <Button type="submit" isDisabled={isSubmitting} className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white">
-                {isSubmitting ? "Saving..." : "Save profile"}
-              </Button>
-              {saved && <p className="text-sm text-emerald-400">Profile settings saved successfully.</p>}
-            </div>
-          </form>
+
+      <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)]">
+        <Card.Content className="flex flex-wrap items-center gap-3 text-sm">
+          <span className="text-slate-400">AI profile:</span>
+          {u?.profileComplete ? (
+            <span className="font-medium text-emerald-400">Complete</span>
+          ) : (
+            <span className="font-medium text-amber-400">Incomplete — save the form when everything is set</span>
+          )}
+          {savedHint ? <span className="text-emerald-400/90">Saved.</span> : null}
         </Card.Content>
       </Card>
+
+      {!u ? (
+        <p className="text-sm text-slate-400">Loading profile…</p>
+      ) : (
+        <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+          <Card.Content className="space-y-2">
+            <p className="text-sm font-semibold text-white">Your details</p>
+            <ProfilePreferencesForm
+              initialUser={u}
+              onSuccess={(user) => {
+                setProfile(user);
+                dispatch(setAuthUser(user));
+                setSavedHint(true);
+                setTimeout(() => setSavedHint(false), 3000);
+              }}
+              submitLabel="Save profile"
+              intro="Edit any field except email, then save. To change email, contact support or use account recovery on the auth provider you used."
+            />
+          </Card.Content>
+        </Card>
+      )}
+
+      <ProfilePreferencesModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        initialUser={u}
+        title="Update training profile"
+        onSaved={(user) => {
+          setProfile(user);
+          dispatch(setAuthUser(user));
+          setModalOpen(false);
+        }}
+      />
     </section>
   );
 }

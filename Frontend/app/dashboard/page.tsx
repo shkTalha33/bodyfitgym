@@ -29,9 +29,9 @@ const trendData = [
 ];
 
 const workoutSplit = [
-  { name: "Strength", value: 46, color: "#8b5cf6" },
-  { name: "Cardio", value: 32, color: "#0ea5e9" },
-  { name: "Mobility", value: 22, color: "#22c55e" },
+  { name: "Strength", value: 46, color: "#F41E1E" },
+  { name: "Cardio", value: 32, color: "#a3a3a3" },
+  { name: "Mobility", value: 22, color: "#525252" },
 ];
 
 const iconStats = [
@@ -44,10 +44,10 @@ const iconStats = [
 export default function DashboardHome() {
   return (
     <div className="space-y-6 pb-16 md:pb-0">
-      <div className="rounded-3xl border border-[var(--border)] bg-[linear-gradient(120deg,#111b33_0%,#0c1530_45%,#121f3d_100%)] p-6">
-        <p className="panel-heading">Agent Performance Layer</p>
-        <h1 className="text-2xl font-semibold">Autonomous Fitness Command Center</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-300">
+      <div className="rounded-3xl border border-[var(--border)] bg-[linear-gradient(125deg,#1a1a1a_0%,#141414_45%,#1f1515_100%)] p-6">
+        <p className="panel-heading">Body Fit</p>
+        <h1 className="text-2xl font-bold italic tracking-tight text-white">Your training command center</h1>
+        <p className="mt-2 max-w-2xl text-sm text-neutral-400">
           Your AI agent monitors training, nutrition, and recovery signals in real time and recommends exact next actions.
         </p>
       </div>
@@ -55,11 +55,11 @@ export default function DashboardHome() {
         {iconStats.map((item) => (
           <Card key={item.label} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)]">
             <Card.Content className="flex items-center justify-between">
-              <div className="rounded-xl bg-[var(--accent-soft)] p-2.5">
+              <div className="rounded-xl bg-[var(--accent-soft)] p-2.5 text-[#F41E1E]">
                 <item.icon size={18} />
               </div>
               <div className="text-right leading-tight">
-                <p className="text-xs text-slate-400">{item.label}</p>
+                <p className="text-xs text-neutral-500">{item.label}</p>
                 <p className="text-lg font-semibold">{item.value}</p>
                 <p className="text-xs text-emerald-400">{item.delta}</p>
               </div>
@@ -73,30 +73,30 @@ export default function DashboardHome() {
           <Card.Content>
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm font-semibold">Weekly Calorie Signal</p>
-              <p className="text-xs text-slate-400">7-day trend</p>
+              <p className="text-xs text-neutral-500">7-day trend</p>
             </div>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trendData}>
                   <defs>
                     <linearGradient id="caloriesBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.95} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0.45} />
+                      <stop offset="0%" stopColor="#F41E1E" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#991b1b" stopOpacity={0.45} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#2a3b63" strokeDasharray="3 3" opacity={0.35} />
-                  <XAxis dataKey="day" tick={{ fill: "#9db0d4", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#9db0d4", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid stroke="#404040" strokeDasharray="3 3" opacity={0.35} />
+                  <XAxis dataKey="day" tick={{ fill: "#a3a3a3", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#a3a3a3", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    cursor={{ fill: "rgba(139, 92, 246, 0.12)" }}
+                    cursor={{ fill: "rgba(244, 30, 30, 0.12)" }}
                     contentStyle={{
-                      backgroundColor: "#0f1a31",
-                      border: "1px solid #334a75",
+                      backgroundColor: "#1a1a1a",
+                      border: "1px solid #404040",
                       borderRadius: "12px",
-                      color: "#e2e8f0",
+                      color: "#f5f5f5",
                     }}
-                    labelStyle={{ color: "#c7d5f2", fontWeight: 600 }}
-                    itemStyle={{ color: "#e2e8f0" }}
+                    labelStyle={{ color: "#d4d4d4", fontWeight: 600 }}
+                    itemStyle={{ color: "#f5f5f5" }}
                   />
                   <Bar dataKey="calories" radius={[10, 10, 0, 0]} fill="url(#caloriesBar)" />
                 </BarChart>
@@ -114,10 +114,10 @@ export default function DashboardHome() {
             ].map((rec) => (
               <div key={rec.title} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
                 <p className="mb-1 flex items-center gap-2 text-sm font-medium">
-                  <rec.icon size={14} className="text-violet-300" />
+                  <rec.icon size={14} className="text-[#f87171]" />
                   {rec.title}
                 </p>
-                <p className="text-xs text-slate-300">{rec.body}</p>
+                <p className="text-xs text-neutral-400">{rec.body}</p>
               </div>
             ))}
           </Card.Content>
@@ -133,31 +133,31 @@ export default function DashboardHome() {
                 <LineChart data={trendData}>
                   <defs>
                     <linearGradient id="stepsGlow" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#22d3ee" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
+                      <stop offset="0%" stopColor="#F41E1E" />
+                      <stop offset="100%" stopColor="#fca5a5" />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#2a3b63" strokeDasharray="3 3" opacity={0.35} />
-                  <XAxis dataKey="day" tick={{ fill: "#9db0d4", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#9db0d4", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <CartesianGrid stroke="#404040" strokeDasharray="3 3" opacity={0.35} />
+                  <XAxis dataKey="day" tick={{ fill: "#a3a3a3", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#a3a3a3", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    cursor={{ stroke: "#475f94", strokeWidth: 1 }}
+                    cursor={{ stroke: "#525252", strokeWidth: 1 }}
                     contentStyle={{
-                      backgroundColor: "#0f1a31",
-                      border: "1px solid #334a75",
+                      backgroundColor: "#1a1a1a",
+                      border: "1px solid #404040",
                       borderRadius: "12px",
-                      color: "#e2e8f0",
+                      color: "#f5f5f5",
                     }}
-                    labelStyle={{ color: "#c7d5f2", fontWeight: 600 }}
-                    itemStyle={{ color: "#e2e8f0" }}
+                    labelStyle={{ color: "#d4d4d4", fontWeight: 600 }}
+                    itemStyle={{ color: "#f5f5f5" }}
                   />
                   <Line
                     type="monotone"
                     dataKey="steps"
                     stroke="url(#stepsGlow)"
                     strokeWidth={3.5}
-                    dot={{ r: 4, strokeWidth: 0, fill: "#7dd3fc" }}
-                    activeDot={{ r: 6, fill: "#8b5cf6" }}
+                    dot={{ r: 4, strokeWidth: 0, fill: "#F41E1E" }}
+                    activeDot={{ r: 6, fill: "#fca5a5" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -178,7 +178,7 @@ export default function DashboardHome() {
                     innerRadius={68}
                     outerRadius={104}
                     paddingAngle={3}
-                    stroke="#0b1222"
+                    stroke="#121212"
                     strokeWidth={2}
                   >
                     {workoutSplit.map((entry) => (
@@ -187,15 +187,15 @@ export default function DashboardHome() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#0f1a31",
-                      border: "1px solid #334a75",
+                      backgroundColor: "#1a1a1a",
+                      border: "1px solid #404040",
                       borderRadius: "12px",
-                      color: "#e2e8f0",
+                      color: "#f5f5f5",
                     }}
-                    labelStyle={{ color: "#c7d5f2", fontWeight: 600 }}
-                    itemStyle={{ color: "#e2e8f0" }}
+                    labelStyle={{ color: "#d4d4d4", fontWeight: 600 }}
+                    itemStyle={{ color: "#f5f5f5" }}
                   />
-                  <Legend wrapperStyle={{ color: "#c7d5f2", fontSize: "12px" }} />
+                  <Legend wrapperStyle={{ color: "#a3a3a3", fontSize: "12px" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

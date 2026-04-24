@@ -8,9 +8,10 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "/next.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/images/logo/bodyfitlogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

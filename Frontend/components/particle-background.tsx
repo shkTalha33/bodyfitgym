@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 
-export default function ParticleBackground() {
+type ParticleVariant = "bodyfit" | "violet";
+
+export default function ParticleBackground({ variant = "bodyfit" }: { variant?: ParticleVariant }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -13,20 +15,31 @@ export default function ParticleBackground() {
     }).then(() => setIsReady(true));
   }, []);
 
-  const options = useMemo(
-    () => ({
+  const options = useMemo(() => {
+    const palette =
+      variant === "bodyfit"
+        ? {
+            colors: ["#f41e1e", "#fca5a5", "#737373"],
+            link: "#f41e1e",
+          }
+        : {
+            colors: ["#8b5cf6", "#38bdf8", "#a78bfa"],
+            link: "#6d67ff",
+          };
+
+    return {
       fullScreen: { enable: false },
       background: { color: "transparent" },
       particles: {
         number: { value: 64, density: { enable: true, width: 1200, height: 800 } },
-        color: { value: ["#8b5cf6", "#38bdf8", "#a78bfa"] },
+        color: { value: palette.colors },
         opacity: { value: { min: 0.12, max: 0.5 } },
         size: { value: { min: 1, max: 3 } },
         links: {
           enable: true,
           distance: 120,
-          color: "#6d67ff",
-          opacity: 0.18,
+          color: palette.link,
+          opacity: 0.14,
           width: 1,
         },
         move: {
@@ -46,9 +59,8 @@ export default function ParticleBackground() {
         },
       },
       detectRetina: true,
-    }),
-    []
-  );
+    };
+  }, [variant]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">

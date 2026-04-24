@@ -23,6 +23,14 @@ const run = async () => {
     preferences: {
       dietType: "high_protein",
       fitnessLevel: "intermediate",
+      activityLevel: "moderate",
+      mealsPerDay: "4",
+      planStyle: "high_protein",
+      targetCalories: 2400,
+      equipment: "full_gym",
+      sessionMinutes: "60",
+      workoutFocus: ["chest", "back", "legs"],
+      profileComplete: true,
       schedule: ["Mon", "Wed", "Fri"],
     },
   });

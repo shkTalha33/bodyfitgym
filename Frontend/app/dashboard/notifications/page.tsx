@@ -45,7 +45,7 @@ export default function NotificationsPage() {
             <Card.Content className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-400">{item.label}</p>
-                <p className="text-sm font-semibold text-violet-300">{item.status}</p>
+                <p className="text-sm font-semibold text-[#f87171]">{item.status}</p>
               </div>
               <item.icon size={18} className="text-slate-300" />
             </Card.Content>
@@ -70,7 +70,7 @@ export default function NotificationsPage() {
             ))}
           </div>
           <div className="mt-4 flex items-center gap-3">
-            <Button onClick={() => setSaved(true)} className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-white">
+            <Button onClick={() => setSaved(true)} className="rounded-xl bg-[#F41E1E] font-semibold text-white hover:opacity-95">
               Save notification settings
             </Button>
             {saved && <p className="text-sm text-emerald-400">Notification preferences saved.</p>}

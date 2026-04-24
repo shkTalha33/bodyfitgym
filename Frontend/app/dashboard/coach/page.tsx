@@ -1,7 +1,12 @@
 "use client";
 
 import { useMemo, useState, useRef, useEffect } from "react";
+import AiStructuredResponse from "@/components/ai-structured-response";
+import ProfilePreferencesModal from "@/components/profile-preferences-modal";
 import api from "@/lib/api";
+import { fetchProfileFresh } from "@/lib/fetch-profile";
+import { setAuthUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { Avatar, Button, Card, Input, Spinner } from "@heroui/react";
 import { Bot, Clock3, MessageSquare, Send, Sparkles, Zap } from "lucide-react";
 
@@ -14,6 +19,9 @@ type ChatSession = {
 };
 
 export default function CoachPage() {
+  const dispatch = useAppDispatch();
+  const authUser = useAppSelector((s) => s.auth.user);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
       id: "session-live",
@@ -80,9 +88,22 @@ export default function CoachPage() {
 
   const send = async () => {
     if (!prompt.trim()) return;
+
+    try {
+      const me = await fetchProfileFresh();
+      dispatch(setAuthUser(me));
+      if (!me.profileComplete) {
+        setProfileModalOpen(true);
+        return;
+      }
+    } catch {
+      setProfileModalOpen(true);
+      return;
+    }
+
     const userMessage: Message = { role: "user", content: prompt };
     const next: Message[] = [...activeSession.messages, userMessage];
-    
+
     setSessions((prev) =>
       prev.map((session) =>
         session.id === activeSession.id
@@ -94,19 +115,13 @@ export default function CoachPage() {
     setTyping(true);
 
     try {
-      // First, save the user message to the DB (optional but keeping original logic)
       await api.post("/resources/conversations", {
         title: activeSession.title,
         messages: next,
       });
 
-      // Now call the AI Coach (Express -> Groq)
-      const response = await fetch("http://localhost:5000/api/ai/coach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
-      });
-      const result = await response.json();
+      const response = await api.post("/ai/coach", { messages: next });
+      const result = response.data;
 
       if (result.success) {
         const assistantMessage: Message = { role: "assistant", content: result.data };
@@ -122,11 +137,18 @@ export default function CoachPage() {
           )
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Coach Error:", error);
-      const errorMessage: Message = { 
-        role: "assistant", 
-        content: "Sorry, I'm having trouble connecting right now. Please check if the AI agent is running." 
+      const ax = error as { response?: { status?: number; data?: { code?: string } } };
+      if (ax.response?.status === 403 && ax.response.data?.code === "PROFILE_INCOMPLETE") {
+        setProfileModalOpen(true);
+        setTyping(false);
+        return;
+      }
+      const errorMessage: Message = {
+        role: "assistant",
+        content:
+          "Sorry, I'm having trouble connecting right now. Please check if the backend and AI agent are running.",
       };
       setSessions((prev) =>
         prev.map((session) =>
@@ -159,9 +181,19 @@ export default function CoachPage() {
 
   return (
     <div className="space-y-4 pb-16 md:pb-0">
+      <ProfilePreferencesModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        initialUser={authUser}
+        title="Complete your profile to chat with the coach"
+        onSaved={(u) => dispatch(setAuthUser(u))}
+      />
       <div>
         <p className="panel-heading">Agent Conversation</p>
         <h1 className="text-2xl font-semibold">AI Coach Agent</h1>
+        <p className="mt-1 text-xs text-neutral-500">
+          Replies use your saved profile (goal, calories, equipment, etc.). Finish Profile if prompted.
+        </p>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -169,7 +201,7 @@ export default function CoachPage() {
           <Card.Content className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Recent Chats</p>
-              <Button size="sm" onClick={startNewChat} className="rounded-lg bg-violet-600 text-white">
+              <Button size="sm" onClick={startNewChat} className="rounded-lg bg-[#F41E1E] font-semibold text-white hover:opacity-95">
                 New
               </Button>
             </div>
@@ -181,7 +213,7 @@ export default function CoachPage() {
                   onClick={() => setActiveSessionId(session.id)}
                   className={`w-full rounded-xl border p-3 text-left transition ${
                     session.id === activeSession.id
-                      ? "border-violet-500 bg-violet-500/10"
+                      ? "border-[#F41E1E] bg-[#F41E1E]/10"
                       : "border-[var(--border)] bg-[var(--surface-soft)] hover:bg-[var(--surface-strong)]"
                   }`}
                 >
@@ -197,7 +229,7 @@ export default function CoachPage() {
             <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-3">
               <p className="mb-2 text-xs text-slate-400">Agent status</p>
               <p className="flex items-center gap-2 text-sm font-medium">
-                <Zap size={14} className="text-violet-300" />
+                <Zap size={14} className="text-[#f87171]" />
                 Active and learning from your recent logs
               </p>
             </div>
@@ -239,15 +271,21 @@ export default function CoachPage() {
                     className={`flex max-w-[80%] items-start gap-2 rounded-2xl p-3 text-sm ${
                       m.role === "assistant"
                         ? "bg-[var(--surface-strong)] text-slate-100"
-                        : "bg-gradient-to-r from-violet-600 to-indigo-500 text-white"
+                        : "bg-[#F41E1E] text-white"
                     }`}
                   >
                     {m.role === "assistant" && (
-                      <Avatar size="sm" className="bg-violet-600 text-white">
+                      <Avatar size="sm" className="shrink-0 bg-[#F41E1E] text-white">
                         <Bot size={14} />
                       </Avatar>
                     )}
-                    <p>{m.content}</p>
+                    {m.role === "assistant" ? (
+                      <div className="min-w-0 flex-1">
+                        <AiStructuredResponse content={m.content} variant="chat" />
+                      </div>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{m.content}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -267,11 +305,11 @@ export default function CoachPage() {
                 background: transparent;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: rgba(139, 92, 246, 0.3);
+                background: rgba(244, 30, 30, 0.35);
                 border-radius: 10px;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: rgba(139, 92, 246, 0.5);
+                background: rgba(244, 30, 30, 0.55);
               }
             `}</style>
 
@@ -286,7 +324,7 @@ export default function CoachPage() {
               />
               <Button
                 isIconOnly
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-violet-600 text-white"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[#F41E1E] text-white"
                 onClick={send}
                 isDisabled={!prompt.trim() || typing}
               >

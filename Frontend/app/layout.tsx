@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "Body Fit Dashboard",
   description: "Production-ready Body Fit SaaS PWA dashboard",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/images/logo/bodyfitlogo.png",
+    apple: "/images/logo/bodyfitlogo.png",
+  },
 };
 
 export default function RootLayout({

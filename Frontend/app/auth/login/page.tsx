@@ -1,19 +1,36 @@
+import Link from "next/link";
 import AuthForm from "@/components/auth-form";
-import ParticleBackground from "@/components/particle-background";
 
 export default function LoginPage() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,#7c3aed2e_0%,transparent_34%),#020617] px-4">
-      <ParticleBackground />
-      <div className="relative grid w-full max-w-5xl gap-8 lg:grid-cols-2 lg:items-center">
-        <div className="hidden lg:flex lg:min-h-[520px] lg:flex-col lg:justify-center">
-          <p className="panel-heading mb-3">Agentic Gym Platform</p>
-          <h1 className="text-4xl font-bold leading-tight xl:text-5xl">
-            Train with an autonomous <span className="text-violet-400">performance</span> copilot.
-          </h1>
-          <p className="mt-5 max-w-xl text-lg text-slate-300">
-            AI-guided nutrition, workouts, and progress tracking in one premium dashboard.
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-16">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(244,30,30,0.18),transparent)]"
+        aria-hidden
+      />
+      <Link
+        href="/"
+        className="absolute left-4 top-4 text-sm font-bold text-white/75 transition-colors hover:text-[#F41E1E] lg:hidden"
+      >
+        ← Home
+      </Link>
+      <div className="relative grid w-full max-w-5xl gap-10 lg:grid-cols-2 lg:items-center">
+        <div className="hidden lg:flex lg:min-h-[480px] lg:flex-col lg:justify-center">
+          <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.22em] text-[#F41E1E]">
+            Body Fit
           </p>
+          <h1 className="text-4xl font-extrabold italic leading-tight tracking-tight text-white xl:text-5xl">
+            Train <span className="text-[#F41E1E]">smarter</span>. Track every win.
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70">
+            Sign in to your dashboard — workouts, meals, and progress in one place.
+          </p>
+          <Link
+            href="/"
+            className="mt-10 inline-flex w-fit items-center text-sm font-bold text-white/75 transition-colors hover:text-[#F41E1E]"
+          >
+            ← Back to home
+          </Link>
         </div>
         <AuthForm mode="login" />
       </div>

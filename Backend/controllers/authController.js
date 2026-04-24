@@ -3,15 +3,20 @@ const jwt = require("jsonwebtoken");
 const env = require("../config/env");
 const User = require("../models/User");
 const { createAccessToken, createRefreshToken } = require("../utils/tokens");
+const { isProfileComplete } = require("../utils/userProfile");
 
-const publicUser = (user) => ({
-  id: user._id,
-  name: user.name,
-  email: user.email,
-  avatarUrl: user.avatarUrl,
-  stats: user.stats,
-  preferences: user.preferences,
-});
+const publicUser = (user) => {
+  const doc = user.toObject ? user.toObject() : user;
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+    stats: doc.stats,
+    preferences: doc.preferences,
+    profileComplete: isProfileComplete(doc),
+  };
+};
 
 const signup = async (req, res) => {
   const { name, email, password } = req.validated.body;

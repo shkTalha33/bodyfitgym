@@ -2,15 +2,16 @@
 @import "@heroui/styles";
 
 :root {
-  --background: #020617;
-  --foreground: #e2e8f0;
-  --surface: #0b1222;
-  --surface-soft: #101a30;
-  --surface-muted: #17223a;
-  --surface-strong: #1f2d4d;
-  --border: #273a5f;
-  --accent: #8b5cf6;
-  --accent-soft: #5b4bd91f;
+  /* Body Fit — aligned with landing (dark + #F41E1E) */
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --surface: #121212;
+  --surface-soft: #1a1a1a;
+  --surface-muted: #262626;
+  --surface-strong: #2e2e2e;
+  --border: #333333;
+  --accent: #f41e1e;
+  --accent-soft: rgba(244, 30, 30, 0.14);
 }
 
 @theme inline {
@@ -50,7 +51,7 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   font-size: 0.7rem;
-  color: #93a4c7;
+  color: #a3a3a3;
 }
 
 @keyframes drift {

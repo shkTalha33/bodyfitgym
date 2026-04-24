@@ -1,4 +1,5 @@
 import GymAssetLoader from "@/components/gym-asset-loader";
+import LandingHtmlWithClientNav from "@/components/landing-html-with-client-nav";
 
 const LANDING_HTML = `<!-- Header -->
 
@@ -8,7 +9,7 @@ const LANDING_HTML = `<!-- Header -->
                 <div class="col-md-12">
                     <nav class="navbar navbar-expand-lg">
                         <a class="navbar-brand" href="/">
-                            <img src="/images/logo.svg" alt="logo">
+                            <img src="/images/logo/bodyfitlogo.png" alt="Body Fit" height="50" style="height:50px;width:auto;">
                         </a>
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
@@ -48,7 +49,7 @@ const LANDING_HTML = `<!-- Header -->
                                     <a class="nav-link" data-link="blog-section" href="#blog">Blog</a>
                                 </li>
                             </ul>
-                            <a class="theme-btn d-inline-block d-lg-none text-decoration-none" href="#contact">
+                            <a class="theme-btn d-inline-block d-lg-none text-decoration-none" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +60,7 @@ const LANDING_HTML = `<!-- Header -->
                             </a>
                         </div>
                         <div class="header-button-block d-lg-block d-none">
-                            <a class="theme-btn text-decoration-none" href="#contact">
+                            <a class="theme-btn text-decoration-none" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -95,7 +96,7 @@ const LANDING_HTML = `<!-- Header -->
                                 personalized training programs, cutting-edge equipment, and a supportive
                                 community. Achieve unparalleled results and elevate your fitness journey
                                 with us.</p>
-                            <button class="theme-btn" type="button">
+                            <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +104,7 @@ const LANDING_HTML = `<!-- Header -->
                                         d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                         fill="#F41E1E"></path>
                                 </svg>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -503,7 +504,7 @@ const LANDING_HTML = `<!-- Header -->
                                     <p>1 Body Composition Analysis</p>
                                 </li>
                             </ul>
-                            <button class="theme-btn" type="button">
+                            <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -511,7 +512,7 @@ const LANDING_HTML = `<!-- Header -->
                                         d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                         fill="#F41E1E"></path>
                                 </svg>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -545,7 +546,7 @@ const LANDING_HTML = `<!-- Header -->
                                     <p>1 Sauna Treatment</p>
                                 </li>
                             </ul>
-                            <button class="theme-btn" type="button">
+                            <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -553,7 +554,7 @@ const LANDING_HTML = `<!-- Header -->
                                         d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                         fill="#F41E1E"></path>
                                 </svg>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -579,7 +580,7 @@ const LANDING_HTML = `<!-- Header -->
                                     <p>4 Training Consultations</p>
                                 </li>
                             </ul>
-                            <button class="theme-btn" type="button">
+                            <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
                                 Join Now
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -587,7 +588,7 @@ const LANDING_HTML = `<!-- Header -->
                                         d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                         fill="#F41E1E"></path>
                                 </svg>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -629,7 +630,7 @@ const LANDING_HTML = `<!-- Header -->
                                 </div>
                             </div>
                         </div>
-                        <button class="theme-btn" type="button">
+                        <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
                             Join Now
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -637,7 +638,7 @@ const LANDING_HTML = `<!-- Header -->
                                     d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                     fill="#F41E1E"></path>
                             </svg>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -1101,15 +1102,15 @@ const LANDING_HTML = `<!-- Header -->
                                 <textarea placeholder="Write your message" rows="2"></textarea>
                             </div>
                         </div>
-                        <button class="theme-btn" type="button">
-                            submit
+                        <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
+                            Join now
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M12 11.4713V0H0.526055V1.49626H9.44913L0 10.9426L1.05211 12L10.5112 2.54364V11.4713H12Z"
                                     fill="#F41E1E"></path>
                             </svg>
-                        </button>
+                        </a>
                     </form>
                 </div>
             </div>
@@ -1124,7 +1125,7 @@ const LANDING_HTML = `<!-- Header -->
                 <div class="col-md-12">
                     <div class="footer-logo">
                         <a href="/" data-aos="fade-right" data-aos-duration="1200"><img
-                                src="/images/footerlogo.svg" alt="logo"></a>
+                                src="/images/logo/bodyfitlogo.png" alt="Body Fit" style="max-height:56px;width:auto;"></a>
                         <div class="footer-logo-title position-relative">
                             <h5 class="text-center text-lg-start" data-aos="fade-up" data-aos-duration="900">The
                                 <span>secret</span> of getting ahead is getting
@@ -1231,7 +1232,7 @@ export default function LandingPage() {
   return (
     <>
       <GymAssetLoader />
-      <div dangerouslySetInnerHTML={{ __html: LANDING_HTML }} />
+      <LandingHtmlWithClientNav html={LANDING_HTML} />
     </>
   );
 }

@@ -18,7 +18,7 @@ export default function ProgressPage() {
           <Card.Content className="space-y-2">
             <p className="text-xs text-slate-400">Goal Alignment</p>
             <p className="flex items-center gap-2 text-xl font-semibold"><ArrowUpRight size={16} /> 84%</p>
-            <p className="text-xs text-violet-300">Consistency above target</p>
+            <p className="text-xs text-[#f87171]">Consistency above target</p>
           </Card.Content>
         </Card>
         <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
