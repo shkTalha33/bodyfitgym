@@ -17,7 +17,18 @@ const ensureModel = (type) => byType[type];
 const list = async (req, res) => {
   const Model = ensureModel(req.params.type);
   if (!Model) return res.status(404).json({ message: "Unknown resource" });
-  const items = await Model.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(100);
+  const type = req.params.type;
+  const isConversations = type === "conversations";
+
+  let sort = { createdAt: -1 };
+  let limit = 100;
+  if (isConversations) {
+    sort = { updatedAt: -1 };
+    const parsed = parseInt(String(req.query.limit ?? "20"), 10);
+    limit = Number.isFinite(parsed) ? Math.min(50, Math.max(5, parsed)) : 20;
+  }
+
+  const items = await Model.find({ userId: req.user.id }).sort(sort).limit(limit);
   return res.json(items);
 };
 

@@ -551,12 +551,45 @@ Use 3-6 sections max (warm-up, main blocks, cardio if needed, cool-down). Every 
   }
 };
 
+const COACH_RECENT_MESSAGE_CAP = 12;
+const COACH_SUMMARY_MAX_CHARS = 8000;
+const COACH_MESSAGE_CONTENT_MAX = 32000;
+
+function sanitizeCoachMessages(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const m of raw) {
+    if (!m || typeof m !== "object") continue;
+    const role = m.role === "user" || m.role === "assistant" ? m.role : null;
+    if (!role) continue;
+    let content = typeof m.content === "string" ? m.content : "";
+    if (content.length > COACH_MESSAGE_CONTENT_MAX) {
+      content = content.slice(0, COACH_MESSAGE_CONTENT_MAX);
+    }
+    out.push({ role, content });
+  }
+  return out.slice(-COACH_RECENT_MESSAGE_CAP);
+}
+
 // --- AI Coach Controller (Chat) ---
 exports.aiCoach = async (req, res, next) => {
   try {
-    const { messages } = req.body;
-    const context = buildCoachContext(req.profileUser);
-    const augmented = [{ role: "system", content: context }, ...(Array.isArray(messages) ? messages : [])];
+    const { messages, conversationSummary } = req.body;
+    const recent = sanitizeCoachMessages(messages);
+    if (recent.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Send at least one valid user or assistant message.",
+      });
+    }
+    let summary =
+      typeof conversationSummary === "string" ? conversationSummary.trim() : "";
+    if (summary.length > COACH_SUMMARY_MAX_CHARS) {
+      summary = summary.slice(0, COACH_SUMMARY_MAX_CHARS);
+    }
+
+    const context = buildCoachContext(req.profileUser, summary || undefined);
+    const augmented = [{ role: "system", content: context }, ...recent];
 
     const response = await axios.post(`${AI_AGENT_URL}/api/agent/groq`, {
       messages: augmented,
@@ -566,13 +599,13 @@ exports.aiCoach = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: response.data.response
+      data: response.data.response,
     });
   } catch (error) {
     console.error("AI Coach Error:", error.message);
     res.status(500).json({
       success: false,
-      message: "AI Coach is currently unavailable."
+      message: "AI Coach is currently unavailable.",
     });
   }
 };
