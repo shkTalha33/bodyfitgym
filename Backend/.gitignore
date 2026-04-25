@@ -51,3 +51,13 @@ public/uploads/
 *.tgz
 *.gz
 *.zip
+
+# Recovery files
+recovery_file.dat
+recovery_file_*.dat
+
+# One-time setup scripts
+generate.mjs
+register.mjs
+rotate.mjs
+createWallet.mjs
