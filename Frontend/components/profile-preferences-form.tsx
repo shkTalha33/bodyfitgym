@@ -19,13 +19,54 @@ import {
 import { normalizeUser, type AuthUser } from "@/lib/user-normalize";
 import { setAuthUser } from "@/store/slices/authSlice";
 import { useAppDispatch } from "@/hooks/redux";
-import { Button, Input } from "@heroui/react";
+import { Button, Input, Label, ListBox, Select } from "@heroui/react";
 import { useEffect, useState } from "react";
 
-const selectClass =
-  "mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-[#F41E1E]/40";
-
 const inputClass = "mt-1 bg-[var(--surface-soft)]";
+
+const selectSurface = "mt-1 w-full max-w-full";
+
+type Opt = { id: string; label: string };
+
+function FieldSelect({
+  label,
+  selectedKey,
+  onSelect,
+  options,
+}: {
+  label: string;
+  selectedKey: string;
+  onSelect: (key: string) => void;
+  options: Opt[];
+}) {
+  return (
+    <div className="min-w-0">
+      <Label className="text-sm text-slate-300">{label}</Label>
+      <Select
+        selectedKey={selectedKey}
+        onSelectionChange={(key) => {
+          if (key != null) onSelect(String(key));
+        }}
+        className={selectSurface}
+        fullWidth
+      >
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover className="max-h-72">
+          <ListBox>
+            {options.map((o) => (
+              <ListBox.Item key={o.id} id={o.id} textValue={o.label}>
+                {o.label}
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Select.Popover>
+      </Select>
+    </div>
+  );
+}
 
 type Props = {
   initialUser: AuthUser | null;
@@ -68,23 +109,25 @@ export default function ProfilePreferencesForm({
 
   useEffect(() => {
     if (!initialUser) return;
-    setDisplayName(initialUser.name || "");
-    setEmailDisplay(initialUser.email || "");
-    const s = initialUser.stats;
-    const p = initialUser.preferences;
-    if (s?.weightKg) setWeightKg(s.weightKg);
-    if (s?.heightCm) setHeightCm(s.heightCm);
-    if (s?.age) setAge(s.age);
-    if (s?.goal) setGoal(s.goal);
-    if (p?.fitnessLevel) setFitnessLevel(p.fitnessLevel);
-    if (p?.activityLevel) setActivityLevel(p.activityLevel);
-    if (p?.dietType) setDietType(p.dietType);
-    if (p?.planStyle) setPlanStyle(p.planStyle);
-    if (p?.targetCalories) setTargetCalories(p.targetCalories);
-    if (p?.mealsPerDay) setMealsPerDay(p.mealsPerDay);
-    if (p?.equipment) setEquipment(p.equipment);
-    if (p?.sessionMinutes) setSessionMinutes(p.sessionMinutes);
-    if (p?.workoutFocus?.length) setWorkoutFocus([...p.workoutFocus]);
+    queueMicrotask(() => {
+      setDisplayName(initialUser.name || "");
+      setEmailDisplay(initialUser.email || "");
+      const s = initialUser.stats;
+      const p = initialUser.preferences;
+      if (s?.weightKg) setWeightKg(s.weightKg);
+      if (s?.heightCm) setHeightCm(s.heightCm);
+      if (s?.age) setAge(s.age);
+      if (s?.goal) setGoal(s.goal);
+      if (p?.fitnessLevel) setFitnessLevel(p.fitnessLevel);
+      if (p?.activityLevel) setActivityLevel(p.activityLevel);
+      if (p?.dietType) setDietType(p.dietType);
+      if (p?.planStyle) setPlanStyle(p.planStyle);
+      if (p?.targetCalories) setTargetCalories(p.targetCalories);
+      if (p?.mealsPerDay) setMealsPerDay(p.mealsPerDay);
+      if (p?.equipment) setEquipment(p.equipment);
+      if (p?.sessionMinutes) setSessionMinutes(p.sessionMinutes);
+      if (p?.workoutFocus?.length) setWorkoutFocus([...p.workoutFocus]);
+    });
   }, [initialUser]);
 
   const toggleMuscle = (v: string) => {
@@ -134,6 +177,11 @@ export default function ProfilePreferencesForm({
     }
   };
 
+  const weightOpts: Opt[] = WEIGHT_OPTIONS.map((w) => ({ id: String(w), label: `${w} kg` }));
+  const heightOpts: Opt[] = HEIGHT_OPTIONS.map((h) => ({ id: String(h), label: `${h} cm` }));
+  const ageOpts: Opt[] = AGE_OPTIONS.map((a) => ({ id: String(a), label: String(a) }));
+  const calOpts: Opt[] = CALORIE_OPTIONS.map((c) => ({ id: String(c), label: `${c} kcal` }));
+
   return (
     <div className="space-y-3">
       {intro ? <p className="text-xs text-neutral-500">{intro}</p> : null}
@@ -155,126 +203,64 @@ export default function ProfilePreferencesForm({
             aria-readonly="true"
           />
         </div>
-        <label className="text-sm text-slate-300">
-          Weight (kg)
-          <select className={selectClass} value={weightKg} onChange={(e) => setWeightKg(Number(e.target.value))}>
-            {WEIGHT_OPTIONS.map((w) => (
-              <option key={w} value={w} className="bg-neutral-900">
-                {w} kg
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Height (cm)
-          <select className={selectClass} value={heightCm} onChange={(e) => setHeightCm(Number(e.target.value))}>
-            {HEIGHT_OPTIONS.map((h) => (
-              <option key={h} value={h} className="bg-neutral-900">
-                {h} cm
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Age
-          <select className={selectClass} value={age} onChange={(e) => setAge(Number(e.target.value))}>
-            {AGE_OPTIONS.map((a) => (
-              <option key={a} value={a} className="bg-neutral-900">
-                {a}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Primary goal
-          <select className={selectClass} value={goal} onChange={(e) => setGoal(e.target.value)}>
-            {GOAL_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Fitness level
-          <select className={selectClass} value={fitnessLevel} onChange={(e) => setFitnessLevel(e.target.value)}>
-            {FITNESS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Daily activity
-          <select className={selectClass} value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)}>
-            {ACTIVITY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Eating pattern
-          <select className={selectClass} value={dietType} onChange={(e) => setDietType(e.target.value)}>
-            {DIET_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Weekly meal style
-          <select className={selectClass} value={planStyle} onChange={(e) => setPlanStyle(e.target.value)}>
-            {PLAN_STYLE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Daily calorie target
-          <select className={selectClass} value={targetCalories} onChange={(e) => setTargetCalories(Number(e.target.value))}>
-            {CALORIE_OPTIONS.map((c) => (
-              <option key={c} value={c} className="bg-neutral-900">
-                {c} kcal
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Main meals / day
-          <select className={selectClass} value={mealsPerDay} onChange={(e) => setMealsPerDay(e.target.value)}>
-            {MEALS_PER_DAY_OPTIONS.map((m) => (
-              <option key={m} value={m} className="bg-neutral-900">
-                {m} meals
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Gym equipment
-          <select className={selectClass} value={equipment} onChange={(e) => setEquipment(e.target.value)}>
-            {EQUIPMENT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value} className="bg-neutral-900">
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-300">
-          Typical workout length
-          <select className={selectClass} value={sessionMinutes} onChange={(e) => setSessionMinutes(e.target.value)}>
-            {SESSION_MIN_OPTIONS.map((m) => (
-              <option key={m} value={m} className="bg-neutral-900">
-                {m} minutes
-              </option>
-            ))}
-          </select>
-        </label>
+
+        <FieldSelect label="Weight (kg)" selectedKey={String(weightKg)} onSelect={(k) => setWeightKg(Number(k))} options={weightOpts} />
+        <FieldSelect label="Height (cm)" selectedKey={String(heightCm)} onSelect={(k) => setHeightCm(Number(k))} options={heightOpts} />
+        <FieldSelect label="Age" selectedKey={String(age)} onSelect={(k) => setAge(Number(k))} options={ageOpts} />
+        <FieldSelect
+          label="Primary goal"
+          selectedKey={goal}
+          onSelect={setGoal}
+          options={GOAL_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Fitness level"
+          selectedKey={fitnessLevel}
+          onSelect={setFitnessLevel}
+          options={FITNESS_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Daily activity"
+          selectedKey={activityLevel}
+          onSelect={setActivityLevel}
+          options={ACTIVITY_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Eating pattern"
+          selectedKey={dietType}
+          onSelect={setDietType}
+          options={DIET_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Weekly meal style"
+          selectedKey={planStyle}
+          onSelect={setPlanStyle}
+          options={PLAN_STYLE_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Daily calorie target"
+          selectedKey={String(targetCalories)}
+          onSelect={(k) => setTargetCalories(Number(k))}
+          options={calOpts}
+        />
+        <FieldSelect
+          label="Main meals / day"
+          selectedKey={mealsPerDay}
+          onSelect={setMealsPerDay}
+          options={MEALS_PER_DAY_OPTIONS.map((m) => ({ id: m, label: `${m} meals` }))}
+        />
+        <FieldSelect
+          label="Gym equipment"
+          selectedKey={equipment}
+          onSelect={setEquipment}
+          options={EQUIPMENT_OPTIONS.map((o) => ({ id: o.value, label: o.label }))}
+        />
+        <FieldSelect
+          label="Typical workout length"
+          selectedKey={sessionMinutes}
+          onSelect={setSessionMinutes}
+          options={SESSION_MIN_OPTIONS.map((m) => ({ id: m, label: `${m} minutes` }))}
+        />
       </div>
 
       <div>

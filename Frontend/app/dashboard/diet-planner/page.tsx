@@ -1,5 +1,6 @@
 "use client";
 
+import { AiModulePageSkeleton } from "@/components/app-skeletons";
 import ProfilePreferencesModal from "@/components/profile-preferences-modal";
 import api from "@/lib/api";
 import { fetchProfileFresh } from "@/lib/fetch-profile";
@@ -44,10 +45,29 @@ export default function DietPlannerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<DietPlanPayload | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (authUser) setProfileSnap(authUser);
   }, [authUser]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const u = await fetchProfileFresh();
+        dispatch(setAuthUser(u));
+        setProfileSnap(u);
+        const raw = u.savedPlans?.dietPlan;
+        if (raw && typeof raw === "object" && raw !== null && "dailyCalories" in raw) {
+          setGeneratedPlan(raw as DietPlanPayload);
+        }
+      } catch {
+        /* not authenticated */
+      } finally {
+        setHydrated(true);
+      }
+    })();
+  }, [dispatch]);
 
   const s = profileSnap?.stats;
   const p = profileSnap?.preferences;
@@ -109,6 +129,8 @@ export default function DietPlannerPage() {
       const ax = e as { response?: { status?: number; data?: { code?: string; message?: string } } };
       if (ax.response?.status === 403 && ax.response.data?.code === "PROFILE_INCOMPLETE") {
         setModalOpen(true);
+      } else if (ax.response?.status === 402) {
+        setError(ax.response?.data?.message || "Add USDC to your wallet (Dashboard → Wallet) and try again.");
       } else {
         setError(ax.response?.data?.message || "Request failed.");
       }
@@ -126,6 +148,10 @@ export default function DietPlannerPage() {
       { title: "Training Day Plan", calories: c + 140, meals: "5 meals/day", schedule: "6:00, 9:30, 13:00, 17:30, 21:00" },
     ];
   }, [displayCalories, generatedPlan]);
+
+  if (!hydrated) {
+    return <AiModulePageSkeleton />;
+  }
 
   return (
     <section className="space-y-4 pb-16 md:pb-4">
@@ -145,7 +171,9 @@ export default function DietPlannerPage() {
           <p className="panel-heading">Macro Intelligence</p>
           <h2 className="text-2xl font-semibold text-white">Diet Planner</h2>
           <p className="mt-2 text-sm text-neutral-400">
-            Generation uses your saved weight, height, goal, activity, and calorie target from Profile.
+            Generation uses your saved weight, height, goal, activity, and calorie target from Profile. Each successful
+            run charges <strong className="text-neutral-300">0.005 USDC</strong> from your Circle wallet. Your latest
+            plan is stored on your account and reloads when you open this page.
           </p>
         </Card.Content>
       </Card>
@@ -189,7 +217,7 @@ export default function DietPlannerPage() {
               <span className="text-slate-500">Meal style</span> — {p?.planStyle ? optionLabel(PLAN_STYLE_OPTIONS, p.planStyle) : "—"}
             </p>
           </div>
-          <p className="text-xs text-neutral-500">Edit under Dashboard → Profile.</p>
+          <p className="text-xs text-neutral-500">Edit under Account → Profile.</p>
         </Card.Content>
       </Card>
 

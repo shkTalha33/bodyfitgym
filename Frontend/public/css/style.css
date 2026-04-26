@@ -950,7 +950,8 @@ header .sub-menu li a:hover {
 }
 
 .pricing-content ul li p {
-    font-size: 18px;
+    font-size: 15px;
+    line-height: 1.45;
     font-weight: 500;
     color: var(--black);
     margin: 0;

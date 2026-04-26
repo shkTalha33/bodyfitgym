@@ -1,5 +1,6 @@
 "use client";
 
+import { AiModulePageSkeleton } from "@/components/app-skeletons";
 import ProfilePreferencesModal from "@/components/profile-preferences-modal";
 import api from "@/lib/api";
 import { fetchProfileFresh } from "@/lib/fetch-profile";
@@ -50,10 +51,29 @@ export default function MealsPage() {
   const [error, setError] = useState<string | null>(null);
   const [weeklyDays, setWeeklyDays] = useState<DayRow[] | null>(null);
   const [profileSnap, setProfileSnap] = useState(authUser);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (authUser) setProfileSnap(authUser);
   }, [authUser]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const u = await fetchProfileFresh();
+        dispatch(setAuthUser(u));
+        setProfileSnap(u);
+        const days = u.savedPlans?.weeklyMeals?.days;
+        if (Array.isArray(days) && days.length) {
+          setWeeklyDays(days as DayRow[]);
+        }
+      } catch {
+        /* not authenticated */
+      } finally {
+        setHydrated(true);
+      }
+    })();
+  }, [dispatch]);
 
   const refreshProfile = useCallback(async () => {
     const u = await fetchProfileFresh();
@@ -109,6 +129,8 @@ export default function MealsPage() {
       const ax = e as { response?: { status?: number; data?: { code?: string; message?: string } } };
       if (ax.response?.status === 403 && ax.response.data?.code === "PROFILE_INCOMPLETE") {
         setModalOpen(true);
+      } else if (ax.response?.status === 402) {
+        setError(ax.response?.data?.message || "Add USDC to your wallet (Dashboard → Wallet) and try again.");
       } else {
         setError(ax.response?.data?.message || "Request failed. Is the server running?");
       }
@@ -116,6 +138,10 @@ export default function MealsPage() {
       setLoading(false);
     }
   };
+
+  if (!hydrated) {
+    return <AiModulePageSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-16 md:pb-0">
@@ -135,7 +161,9 @@ export default function MealsPage() {
           <p className="panel-heading">Adaptive Nutrition</p>
           <h1 className="text-2xl font-semibold text-white">Weekly Meal Planner</h1>
           <p className="mt-2 max-w-2xl text-sm text-neutral-400">
-            Plans use your saved calorie target, meal frequency, and diet style from Profile—no manual typing here.
+            Plans use your saved calorie target, meal frequency, and diet style from Profile—no manual typing here. Each
+            successful run charges <strong className="text-neutral-300">0.005 USDC</strong> from your Circle wallet. Your
+            last generated week is saved and shown here on return visits.
           </p>
         </Card.Content>
       </Card>
@@ -179,7 +207,7 @@ export default function MealsPage() {
             </p>
           </div>
           <p className="text-xs text-neutral-500">
-            Change these anytime under <strong className="text-neutral-400">Dashboard → Profile</strong>.
+            Change these anytime under <strong className="text-neutral-400">Account → Profile</strong>.
           </p>
         </Card.Content>
       </Card>

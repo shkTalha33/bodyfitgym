@@ -1,14 +1,18 @@
 "use client";
 
 import { useMemo, useState, useRef, useEffect, useCallback, type MouseEvent } from "react";
+import { CoachSidebarSkeleton } from "@/components/app-skeletons";
 import AiStructuredResponse from "@/components/ai-structured-response";
 import ProfilePreferencesModal from "@/components/profile-preferences-modal";
 import api from "@/lib/api";
 import { fetchProfileFresh } from "@/lib/fetch-profile";
 import { setAuthUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { Avatar, Button, Card, Input, Spinner } from "@heroui/react";
-import { Bot, Clock3, MessageSquare, Send, Sparkles, Trash2, Zap } from "lucide-react";
+import { Avatar, Button, Card, Input } from "@heroui/react";
+import { Bot, Clock3, Send, Sparkles, Trash2, Zap } from "lucide-react";
+
+const COACH_NAME = "Body Fit Coach";
+const COACH_TAGLINE = "Your AI training partner";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -166,6 +170,12 @@ export default function CoachPage() {
     [sessions, activeSessionId]
   );
 
+  /** Quick prompts only before the first user message in this thread (new chat). */
+  const showStarterSuggestions = useMemo(
+    () => (activeSession ? !activeSession.messages.some((m) => m.role === "user") : false),
+    [activeSession]
+  );
+
   const suggestions = [
     "Build my 7-day fat-loss plan",
     "Optimize today's meals for 160g protein",
@@ -257,7 +267,19 @@ export default function CoachPage() {
       }
     } catch (error: unknown) {
       console.error("Coach Error:", error);
-      const ax = error as { response?: { status?: number; data?: { code?: string } } };
+      const ax = error as { response?: { status?: number; data?: { code?: string; message?: string } } };
+      if (ax.response?.status === 402) {
+        const payMsg =
+          ax.response.data?.message || "Add USDC to your wallet (Dashboard → Wallet) and try again.";
+        const errorMessage: Message = { role: "assistant", content: payMsg };
+        setSessions((prev) =>
+          prev.map((session) =>
+            session.id === sessionId ? { ...session, messages: [...next, errorMessage] } : session
+          )
+        );
+        setTyping(false);
+        return;
+      }
       if (ax.response?.status === 403 && ax.response.data?.code === "PROFILE_INCOMPLETE") {
         setProfileModalOpen(true);
         setTyping(false);
@@ -313,7 +335,8 @@ export default function CoachPage() {
         <h1 className="text-2xl font-semibold">AI Coach Agent</h1>
         <p className="mt-1 text-xs text-neutral-500">
           Each reply uses your profile plus the last {RECENT_MESSAGES_FOR_MODEL} messages in this chat, and an optional
-          stored summary for older context. Chats sync to your account when the coach responds.
+          stored summary for older context. Chats sync to your account when the coach responds. Each assistant reply
+          charges <strong className="text-neutral-400">0.001 USDC</strong> from your Circle wallet.
         </p>
       </div>
 
@@ -333,7 +356,7 @@ export default function CoachPage() {
 
             <div className="max-h-[min(52vh,28rem)] space-y-2 overflow-y-auto pr-1">
               {!sessionsHydrated ? (
-                <p className="text-xs text-slate-500">Loading conversations…</p>
+                <CoachSidebarSkeleton />
               ) : sessions.length === 0 ? (
                 <p className="text-xs text-slate-500">No chats yet.</p>
               ) : null}
@@ -380,40 +403,36 @@ export default function CoachPage() {
           </Card.Content>
         </Card>
 
-        <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] h-[75vh] overflow-hidden">
-          <Card.Content className="flex h-full flex-col gap-3 overflow-hidden">
-            <div className="flex flex-shrink-0 items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2">
-              <div>
-                <p className="line-clamp-2 text-sm font-semibold">
-                  {activeSession ? chatListTitle(activeSession) : ""}
-                </p>
-                <p className="text-xs text-slate-400">
-                  Model window: last {RECENT_MESSAGES_FOR_MODEL} messages
-                  {activeSession?.summary?.trim() ? " · summary attached" : ""}
-                </p>
+        <Card className="flex h-[75vh] min-h-0 flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
+          <Card.Content className="flex h-full min-h-0 flex-col gap-3">
+            <div className="flex flex-shrink-0 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-3">
+              <Avatar size="md" className="h-11 w-11 shrink-0 bg-[#F41E1E] text-white">
+                <Bot size={22} strokeWidth={2} />
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">{COACH_NAME}</p>
+                <p className="text-xs text-slate-400">{COACH_TAGLINE}</p>
               </div>
-              <p className="flex items-center gap-1 text-xs text-slate-400">
-                <MessageSquare size={12} />
-                {activeSession?.messages.length ?? 0} messages
-              </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {suggestions.map((s) => (
-                <Button
-                  key={s}
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setPrompt(s)}
-                  className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)]"
-                >
-                  <Sparkles size={12} />
-                  {s}
-                </Button>
-              ))}
-            </div>
+            {showStarterSuggestions ? (
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s) => (
+                  <Button
+                    key={s}
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setPrompt(s)}
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)]"
+                  >
+                    <Sparkles size={12} />
+                    {s}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
 
-            <div className="custom-scrollbar flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto rounded-xl bg-[var(--surface-soft)] p-3">
+            <div className="custom-scrollbar flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto overflow-x-hidden rounded-xl bg-[var(--surface-soft)] p-3">
               {activeSession?.messages.map((m, idx) => (
                 <div key={`${m.role}-${idx}`} className={`flex ${m.role === "assistant" ? "justify-start" : "justify-end"}`}>
                   <div
@@ -439,8 +458,21 @@ export default function CoachPage() {
                 </div>
               ))}
               {typing && (
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <Spinner size="sm" /> Agent is thinking...
+                <div className="flex justify-start">
+                  <div
+                    className="flex max-w-[80%] items-center gap-3 rounded-2xl bg-[var(--surface-strong)] px-4 py-3"
+                    aria-live="polite"
+                    aria-label="Coach is typing"
+                  >
+                    <Avatar size="sm" className="shrink-0 bg-[#F41E1E] text-white">
+                      <Bot size={14} />
+                    </Avatar>
+                    <div className="coach-typing-dots flex items-center gap-1.5 py-0.5">
+                      <span className="coach-typing-dot" />
+                      <span className="coach-typing-dot" />
+                      <span className="coach-typing-dot" />
+                    </div>
+                  </div>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -460,20 +492,52 @@ export default function CoachPage() {
               .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                 background: rgba(244, 30, 30, 0.55);
               }
+              @keyframes coach-typing-bounce {
+                0%,
+                60%,
+                100% {
+                  transform: translateY(0);
+                  opacity: 0.35;
+                }
+                30% {
+                  transform: translateY(-5px);
+                  opacity: 1;
+                }
+              }
+              .coach-typing-dot {
+                display: block;
+                width: 7px;
+                height: 7px;
+                border-radius: 9999px;
+                background-color: rgb(163 163 163);
+                animation: coach-typing-bounce 1.05s ease-in-out infinite;
+              }
+              .coach-typing-dot:nth-child(2) {
+                animation-delay: 0.16s;
+              }
+              .coach-typing-dot:nth-child(3) {
+                animation-delay: 0.32s;
+              }
             `}</style>
 
-            <div className="mt-auto border-t border-[var(--border)] pt-3">
-              <div className="relative w-full">
+            <div className="mt-auto shrink-0 overflow-visible border-t border-[var(--border)] px-1 pb-3 pt-3">
+              <div className="relative w-full overflow-visible px-1 pb-1 pt-0.5">
                 <Input
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void send();
+                    }
+                  }}
                   placeholder="Tell the agent what to optimize..."
                   fullWidth
-                  className="w-full bg-[var(--surface-soft)] pr-12"
+                  className="w-full min-h-12 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] pr-12 shadow-none ring-0 outline-none focus-visible:border-[#F41E1E] focus-visible:ring-2 focus-visible:ring-[#F41E1E]/35"
                 />
                 <Button
                   isIconOnly
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[#F41E1E] text-white"
+                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 bg-[#F41E1E] text-white"
                   onClick={send}
                   isDisabled={!prompt.trim() || typing}
                 >

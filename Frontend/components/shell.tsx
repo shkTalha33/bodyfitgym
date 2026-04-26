@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { logoutLocally } from "@/store/slices/authSlice";
+import api from "@/lib/api";
 import { Avatar, Button, Dropdown } from "@heroui/react";
-import { Bell, Bot, Dumbbell, Home, Salad, Sparkles, Target, TrendingUp, UserRound } from "lucide-react";
+import { Bell, Bot, Dumbbell, Home, Salad, Target, TrendingUp, Wallet } from "lucide-react";
 import ParticleBackground from "@/components/particle-background";
 
 const dashboardFont = Montserrat({
@@ -19,25 +20,28 @@ const dashboardFont = Montserrat({
 
 const links = [
   { href: "/dashboard", label: "Dashboard", short: "Home", icon: Home },
+  { href: "/dashboard/wallet", label: "Wallet", short: "Wallet", icon: Wallet },
   { href: "/dashboard/meals", label: "Meal Tracker", short: "Meals", icon: Salad },
   { href: "/dashboard/diet-planner", label: "Diet Planner", short: "Diet", icon: Target },
   { href: "/dashboard/workouts", label: "Workouts", short: "Train", icon: Dumbbell },
   { href: "/dashboard/progress", label: "Progress", short: "Stats", icon: TrendingUp },
   { href: "/dashboard/coach", label: "AI Coach", short: "Coach", icon: Bot },
-  { href: "/dashboard/profile", label: "Profile", short: "Profile", icon: UserRound },
 ];
+
+type NotifItem = { id: string; kind: string; title: string; detail: string; sub: string | null };
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const [balanceLabel, setBalanceLabel] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotifItem[]>([]);
 
   const handleUserMenu = useCallback(
     (key: string | number) => {
       const k = String(key);
       if (k === "profile") router.push("/dashboard/profile");
-      else if (k === "settings") router.push("/dashboard/notifications");
       else if (k === "logout") {
         dispatch(logoutLocally());
         router.push("/auth/login");
@@ -46,12 +50,51 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     [dispatch, router]
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [w, n] = await Promise.all([
+          api.get<{ success: boolean; data?: { hasWallet?: boolean; currentBalanceUsdc?: string } }>("/wallet/summary"),
+          api.get<{ success: boolean; data?: { items: NotifItem[] } }>("/wallet/notifications"),
+        ]);
+        if (cancelled) return;
+        if (w.data?.success && w.data.data?.hasWallet) {
+          const v = Number(w.data.data.currentBalanceUsdc);
+          setBalanceLabel(Number.isFinite(v) ? `${v.toFixed(4)} USDC` : "Wallet");
+        } else {
+          setBalanceLabel("Wallet");
+        }
+        if (n.data?.success && Array.isArray(n.data.data?.items)) {
+          setNotifications(n.data.data.items);
+        } else {
+          setNotifications([]);
+        }
+      } catch {
+        if (!cancelled) {
+          setBalanceLabel("Wallet");
+          setNotifications([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   }, []);
+
+  const formatNotifTime = (iso: string | null) => {
+    if (!iso) return "";
+    const t = new Date(iso).getTime();
+    if (Number.isNaN(t)) return "";
+    return new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
 
   return (
     <div
@@ -60,19 +103,18 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <ParticleBackground variant="bodyfit" />
       <div className="relative flex h-full w-full">
         <aside className="sticky top-0 hidden h-screen w-72 border-r border-[var(--border)] bg-[var(--surface)] px-5 py-6 md:block flex-shrink-0 overflow-y-auto">
-<div className="flex justify-center">
-
-          <Link href="/dashboard" className="mb-7 flex items-center gap-3 px-2 transition-opacity hover:opacity-90">
-            <Image
-              src="/images/logo/bodyfitlogo.png"
-              alt="Body Fit"
-              width={160}
-              height={48}
-              className="h-11 w-auto max-w-[9.5rem] object-contain object-left"
-              priority
-            />
-          </Link>
-</div>
+          <div className="flex justify-center">
+            <Link href="/dashboard" className="mb-7 flex items-center gap-3 px-2 transition-opacity hover:opacity-90">
+              <Image
+                src="/images/logo/bodyfitlogo.png"
+                alt="Body Fit"
+                width={160}
+                height={48}
+                className="h-11 w-auto max-w-[9.5rem] object-contain object-left"
+                priority
+              />
+            </Link>
+          </div>
           <nav className="space-y-1">
             {links.map((item) => (
               <Link
@@ -105,32 +147,63 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="tertiary"
                   className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] text-neutral-200"
+                  onClick={() => router.push("/dashboard/wallet")}
                 >
-                  <Sparkles size={15} className="text-[#F41E1E]" />
-                  AI Mode Active
+                  <Wallet size={15} className="text-[#F41E1E]" />
+                  <span className="max-w-[9rem] truncate text-xs font-semibold md:max-w-[11rem] md:text-sm">
+                    {balanceLabel ?? "…"}
+                  </span>
                 </Button>
                 <Dropdown>
                   <Dropdown.Trigger>
-                    <Button isIconOnly variant="secondary" className="relative rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]" aria-label="Notifications">
-                      <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#F41E1E]" />
+                    <Button
+                      isIconOnly
+                      variant="secondary"
+                      className="relative rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]"
+                      aria-label="Notifications"
+                    >
+                      {notifications.length > 0 ? (
+                        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#F41E1E]" />
+                      ) : null}
                       <Bell size={16} />
                     </Button>
                   </Dropdown.Trigger>
-                  <Dropdown.Popover>
-                    <Dropdown.Menu>
-                      <Dropdown.Item id="n1">Hydration reminder in 20m</Dropdown.Item>
-                      <Dropdown.Item id="n2">Coach generated new meal tweak</Dropdown.Item>
-                      <Dropdown.Item id="n3">Workout session starts at 6:30 PM</Dropdown.Item>
+                  <Dropdown.Popover className="max-h-[min(70vh,24rem)] w-[min(calc(100vw-2rem),20rem)]">
+                    <Dropdown.Menu aria-label="Activity">
+                      {notifications.length === 0 ? (
+                        <Dropdown.Item id="empty" textValue="No activity" isDisabled>
+                          No recent activity
+                        </Dropdown.Item>
+                      ) : (
+                        notifications.map((item) => (
+                          <Dropdown.Item
+                            key={item.id}
+                            id={item.id}
+                            textValue={`${item.title} ${item.detail}`}
+                            className="items-start py-3"
+                          >
+                            <span className="block w-full">
+                              <span className="block text-xs font-semibold text-white">{item.title}</span>
+                              <span className="mt-0.5 block text-xs text-neutral-400">{item.detail}</span>
+                              {item.sub ? (
+                                <span className="mt-1 block text-[10px] text-neutral-500">{formatNotifTime(item.sub)}</span>
+                              ) : null}
+                            </span>
+                          </Dropdown.Item>
+                        ))
+                      )}
                     </Dropdown.Menu>
                   </Dropdown.Popover>
                 </Dropdown>
                 <Dropdown>
                   <Dropdown.Trigger>
-                    <Button variant="tertiary" className="rounded-full border border-[var(--border)] p-0" aria-label="Open user menu">
+                    <Button
+                      variant="tertiary"
+                      className="rounded-full border border-[var(--border)] p-0"
+                      aria-label="Open user menu"
+                    >
                       <Avatar size="sm">
-                        <Avatar.Fallback>
-                          {(user?.name || "User").slice(0, 2).toUpperCase()}
-                        </Avatar.Fallback>
+                        <Avatar.Fallback>{(user?.name || "User").slice(0, 2).toUpperCase()}</Avatar.Fallback>
                       </Avatar>
                     </Button>
                   </Dropdown.Trigger>
@@ -138,9 +211,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     <Dropdown.Menu onAction={handleUserMenu}>
                       <Dropdown.Item id="profile" textValue="Profile">
                         Profile
-                      </Dropdown.Item>
-                      <Dropdown.Item id="settings" textValue="Settings">
-                        Settings
                       </Dropdown.Item>
                       <Dropdown.Item id="logout" className="text-red-500" textValue="Logout">
                         Logout

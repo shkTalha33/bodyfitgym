@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 const env = require("../config/env");
 const User = require("../models/User");
 const { createAccessToken, createRefreshToken } = require("../utils/tokens");
-const { isProfileComplete } = require("../utils/userProfile");
+const { isProfileComplete, profileCompletionPercent } = require("../utils/userProfile");
+const { createUserWallet } = require("../services/circleService.js");
 
 const publicUser = (user) => {
   const doc = user.toObject ? user.toObject() : user;
@@ -15,6 +16,8 @@ const publicUser = (user) => {
     stats: doc.stats,
     preferences: doc.preferences,
     profileComplete: isProfileComplete(doc),
+    profileCompletionPercent: profileCompletionPercent(doc),
+    savedPlans: doc.savedPlans || undefined,
   };
 };
 
@@ -25,6 +28,11 @@ const signup = async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, passwordHash });
+  const { walletId, walletAddress } = await createUserWallet();
+  console.log("walletId" ,walletId);
+  user.walletId = walletId;
+  user.walletAddress = walletAddress;
+  await user.save();
 
   const accessToken = createAccessToken(user._id.toString());
   const refreshToken = createRefreshToken(user._id.toString());

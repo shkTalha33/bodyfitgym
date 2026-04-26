@@ -370,40 +370,16 @@ $(function () {
     });
   });
 
-  // Pricing modification on monthly/anualy slider on/off
-  function setPricing(checkedStatus) {
-    const pricies = {
-      anualy: {
-        individual: 10,
-        premium: 20,
-        standard: 30,
-      },
-      monthly: {
-        individual: 100,
-        premium: 200,
-        standard: 300,
-      },
-    };
-    if (checkedStatus) {
-      // monthly price
-      $(".pricing-row .pricing-col.individual .price").text("$" + pricies.monthly.individual);
-      $(".pricing-row .pricing-col.premium .price").text("$" + pricies.monthly.premium);
-      $(".pricing-row .pricing-col.standard .price").text("$" + pricies.monthly.standard);
-      $("#annually-text").css("color", "#F41E1E");
-      $("#monthly-text").css("color", "#000");
-    } else {
-      // annual price
-      $(".pricing-row .pricing-col.individual .price").text("$" + pricies.anualy.individual);
-      $(".pricing-row .pricing-col.premium .price").text("$" + pricies.anualy.premium);
-      $(".pricing-row .pricing-col.standard .price").text("$" + pricies.anualy.standard);
-      $("#monthly-text").css("color", "#F41E1E");
-      $("#annually-text").css("color", "#000");
-    }
+  // Landing AI pricing (matches app wallet debits). Legacy monthly/annual $ slider removed from HTML.
+  function setAiFeaturePricing() {
+    const coach = $(".pricing-row .pricing-col.individual .price");
+    const diet = $(".pricing-row .pricing-col.premium .price");
+    const workout = $(".pricing-row .pricing-col.standard .price");
+    if (coach.length) coach.text("$0.001");
+    if (diet.length) diet.text("$0.005");
+    if (workout.length) workout.text("$0.008");
   }
-  setPricing($("#pricing-slider").checked);
-  $("#pricing-slider").change((e) => {
-    setPricing(e.target.checked);
-  });
+  setAiFeaturePricing();
 });
 
 // For Submenu & Arrow Indicator

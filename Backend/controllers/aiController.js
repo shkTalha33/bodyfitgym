@@ -1,5 +1,11 @@
 const axios = require("axios");
 const { goalLabel, activityLabel, dietLabel, buildCoachContext } = require("../utils/userProfile");
+const { deductAgentFee, AGENT_FEE_USDC } = require("../services/paymentService");
+const {
+  saveDietPlanToUser,
+  saveWeeklyMealsToUser,
+  saveWorkoutPlanToUser,
+} = require("../services/savedPlansService");
 
 const AI_AGENT_URL = process.env.AI_AGENT_URL || "http://localhost:8000";
 /** Groq free tier — https://console.groq.com (set GROQ_API_KEY on the ai-agent) */
@@ -340,6 +346,26 @@ async function callGroqJson(systemContent, userContent, maxTokens) {
 exports.generateDietPlan = async (req, res, next) => {
   try {
     const u = req.profileUser;
+
+    if (!u.walletId) {
+      return res.status(402).json({
+        success: false,
+        message: "No wallet found. Please contact support.",
+      });
+    }
+
+    let transactionId;
+    try {
+      transactionId = await deductAgentFee(u.walletId, AGENT_FEE_USDC.DIET);
+      console.log(`Diet plan payment. TX ID: ${transactionId}`);
+    } catch (payErr) {
+      console.error("Diet plan payment failed:", payErr.message);
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient USDC balance. Please fund your wallet.",
+      });
+    }
+
     const weight = u.stats.weightKg;
     const height = u.stats.heightCm;
     const goal = goalLabel(u.stats.goal);
@@ -405,9 +431,16 @@ Rules: macrosPct values should be percentages that sum to about 100. Include exa
 
     const data = normalizeDietPlanPayload(parsed, { weight, height, goal, activity });
 
+    try {
+      await saveDietPlanToUser(req.profileUser._id, data);
+    } catch (e) {
+      console.error("Persist diet plan:", e.message);
+    }
+
     res.status(200).json({
       success: true,
       data,
+      transactionId,
     });
   } catch (error) {
     console.error("AI Diet Error:", error.message);
@@ -422,6 +455,29 @@ Rules: macrosPct values should be percentages that sum to about 100. Include exa
 exports.generateWeeklyMeals = async (req, res, next) => {
   try {
     const u = req.profileUser;
+
+    // 1. Check user has a wallet
+    if (!u.walletId) {
+      return res.status(402).json({
+        success: false,
+        message: "No wallet found. Please contact support.",
+      });
+    }
+
+    // 2. Deduct $0.005 USDC before calling AI
+    let transactionId;
+    try {
+      transactionId = await deductAgentFee(u.walletId, AGENT_FEE_USDC.MEALS);
+      console.log(`Payment deducted. TX ID: ${transactionId}`);
+    } catch (payErr) {
+      console.error("Payment failed:", payErr.message);
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient USDC balance. Please fund your wallet.",
+      });
+    }
+
+    // 3. Everything below is your existing code unchanged
     const kcal = Number(u.preferences.targetCalories) || 2200;
     const meals = Number(u.preferences.mealsPerDay) || 3;
     const planStyleLabel = `${dietLabel(u.preferences.planStyle)} (overall diet pattern: ${dietLabel(u.preferences.dietType)})`;
@@ -472,7 +528,16 @@ Use exact English day names Monday..Sunday. Keep each "food" under 140 character
     const data = {
       days: normalizeWeeklyMealsPayload(parsed, { targetDailyKcal: kcal, style: u.preferences.dietType }),
     };
-    res.status(200).json({ success: true, data });
+
+    try {
+      await saveWeeklyMealsToUser(req.profileUser._id, data);
+    } catch (e) {
+      console.error("Persist weekly meals:", e.message);
+    }
+
+    // 4. Return response with transaction ID so frontend can show it
+    res.status(200).json({ success: true, data, transactionId });
+
   } catch (error) {
     console.error("Weekly meals error:", error.message);
     res.status(500).json({
@@ -486,6 +551,26 @@ Use exact English day names Monday..Sunday. Keep each "food" under 140 character
 exports.generateWorkoutPlan = async (req, res, next) => {
   try {
     const u = req.profileUser;
+
+    if (!u.walletId) {
+      return res.status(402).json({
+        success: false,
+        message: "No wallet found. Please contact support.",
+      });
+    }
+
+    let transactionId;
+    try {
+      transactionId = await deductAgentFee(u.walletId, AGENT_FEE_USDC.WORKOUT);
+      console.log(`Workout plan payment. TX ID: ${transactionId}`);
+    } catch (payErr) {
+      console.error("Workout payment failed:", payErr.message);
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient USDC balance. Please fund your wallet.",
+      });
+    }
+
     const fitnessType = u.preferences.fitnessLevel;
     const goalType = goalLabel(u.stats.goal);
     const equipment = dietLabel(u.preferences.equipment);
@@ -541,7 +626,13 @@ Use 3-6 sections max (warm-up, main blocks, cardio if needed, cool-down). Every 
       return res.status(502).json({ success: false, message: "Workout plan was empty. Try again." });
     }
 
-    res.status(200).json({ success: true, data });
+    try {
+      await saveWorkoutPlanToUser(req.profileUser._id, data);
+    } catch (e) {
+      console.error("Persist workout plan:", e.message);
+    }
+
+    res.status(200).json({ success: true, data, transactionId });
   } catch (error) {
     console.error("AI Workout Error:", error.message);
     res.status(500).json({
@@ -574,12 +665,32 @@ function sanitizeCoachMessages(raw) {
 // --- AI Coach Controller (Chat) ---
 exports.aiCoach = async (req, res, next) => {
   try {
+    const u = req.profileUser;
+    if (!u.walletId) {
+      return res.status(402).json({
+        success: false,
+        message: "No wallet found. Please contact support.",
+      });
+    }
+
     const { messages, conversationSummary } = req.body;
     const recent = sanitizeCoachMessages(messages);
     if (recent.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Send at least one valid user or assistant message.",
+      });
+    }
+
+    let transactionId;
+    try {
+      transactionId = await deductAgentFee(u.walletId, AGENT_FEE_USDC.COACH);
+      console.log(`Coach payment. TX ID: ${transactionId}`);
+    } catch (payErr) {
+      console.error("Coach payment failed:", payErr.message);
+      return res.status(402).json({
+        success: false,
+        message: "Insufficient USDC balance. Please fund your wallet.",
       });
     }
     let summary =
@@ -600,6 +711,7 @@ exports.aiCoach = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: response.data.response,
+      transactionId,
     });
   } catch (error) {
     console.error("AI Coach Error:", error.message);

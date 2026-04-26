@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, index: true },
     passwordHash: { type: String, required: true },
     avatarUrl: { type: String, default: "" },
+    walletId: { type: String, default: null },
+    walletAddress: { type: String, default: null },
     stats: {
       heightCm: { type: Number, default: 0 },
       weightKg: { type: Number, default: 0 },
@@ -26,6 +28,25 @@ const userSchema = new mongoose.Schema(
       schedule: { type: [String], default: [] },
     },
     refreshTokens: { type: [String], default: [] },
+    savedPlans: {
+      dietPlan: { type: mongoose.Schema.Types.Mixed, default: null },
+      dietPlanSavedAt: { type: Date, default: null },
+      weeklyMeals: { type: mongoose.Schema.Types.Mixed, default: null },
+      weeklyMealsSavedAt: { type: Date, default: null },
+      workoutPlan: { type: mongoose.Schema.Types.Mixed, default: null },
+      workoutPlanSavedAt: { type: Date, default: null },
+      workoutDailyLog: {
+        type: [
+          {
+            date: { type: String, required: true },
+            percent: { type: Number, default: 0 },
+            completedBlocks: { type: Number, default: 0 },
+            totalBlocks: { type: Number, default: 0 },
+          },
+        ],
+        default: [],
+      },
+    },
   },
   { timestamps: true }
 );

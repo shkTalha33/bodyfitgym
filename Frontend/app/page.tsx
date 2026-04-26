@@ -462,50 +462,43 @@ const LANDING_HTML = `<!-- Header -->
     <section class="pricing" id="pricing" data-id="pricing-section">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 col-lg-6">
+                <div class="col-md-12 col-lg-8">
                     <div class="main-title-block">
-                        <span data-aos="fade-up" data-aos-duration="900">Pricing</span>
-                        <h2 data-aos="fade-up" data-aos-duration="900">Choose the best plans</h2>
+                        <span data-aos="fade-up" data-aos-duration="900">AI pricing</span>
+                        <h2 data-aos="fade-up" data-aos-duration="900">Pay per use with USDC</h2>
+                        <p class="mt-3" data-aos="fade-up" data-aos-duration="950" style="max-width: 42rem; color: rgba(255,255,255,0.7);">
+                            Fund your in-app Circle wallet after signup. Each AI feature deducts a small USDC amount only when you run it—no monthly gym tiers.
+                        </p>
                         <img src="/images/title-light-arrow.svg" data-aos="fade-right" data-aos-duration="1400"
                             alt="arrow">
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-6 align-self-center">
-                    <div class="pricing-switch" data-aos="fade-up" data-aos-duration="900">
-                        <span id="monthly-text">Monthly</span>
-                        <label class="switch pr-5 switch-primary mr-3">
-                            <input type="checkbox" id="pricing-slider">
-                            <span class="slider"></span>
-                        </label>
-                        <span id="annually-text">Annually</span>
-                    </div>
-                </div>
             </div>
             <div class="row pricing-row justify-content-center">
-                <div class="col-md-6 col-lg-4 pricing-col individual">
+                <div class="col-md-6 col-lg-4 pricing-col premium">
                     <div class="pricing-wrapper" data-aos="fade-up" data-aos-duration="1200">
                         <div class="pricing-image">
-                            <img src="/images/plans/plan_01.jpg" class="img-fluid" alt="plan">
+                            <img src="/images/plans/plan_02.jpg" class="img-fluid" alt="Diet Planner">
                         </div>
                         <div class="pricing-content">
-                            <h3>WARRIOR PLAN</h3>
-                            <span class="price"></span>
+                            <h3>DIET PLANNER</h3>
+                            <span class="price">$0.005</span>
                             <ul>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>Training Consultation</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Personalized calories, macro split, and hydration from your profile</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>Training Guidance</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Three ready-made day plans (primary, office, training)</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>1 Body Composition Analysis</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Meal timing and pre-workout fueling guidance</p>
                                 </li>
                             </ul>
                             <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
-                                Join Now
+                                Get started
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path
@@ -516,38 +509,30 @@ const LANDING_HTML = `<!-- Header -->
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4 pricing-col premium">
+                <div class="col-md-6 col-lg-4 pricing-col individual">
                     <div class="pricing-wrapper" data-aos="fade-up" data-aos-duration="1400">
                         <div class="pricing-image">
-                            <img src="/images/plans/plan_02.jpg" class="img-fluid" alt="plan">
+                            <img src="/images/plans/plan_01.jpg" class="img-fluid" alt="AI Coach">
                         </div>
                         <div class="pricing-content">
-                            <h3>GLADIATOR PLAN</h3>
-                            <span class="price"></span>
+                            <h3>AI COACH</h3>
+                            <span class="price">$0.001</span>
                             <ul>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>8-12 Training Consultations</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Profile-aware answers using your saved goals and stats</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>Training Guidance</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Multi-turn chats with history synced to your account</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>1 Body Composition Analysis</p>
-                                </li>
-                                <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>2 Tabata Sessions</p>
-                                </li>
-                                <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>1 Sauna Treatment</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Fast coaching for training, nutrition, and recovery questions</p>
                                 </li>
                             </ul>
                             <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
-                                Join Now
+                                Get started
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path
@@ -561,27 +546,27 @@ const LANDING_HTML = `<!-- Header -->
                 <div class="col-md-6 col-lg-4 pricing-col standard">
                     <div class="pricing-wrapper" data-aos="fade-up" data-aos-duration="1600">
                         <div class="pricing-image">
-                            <img src="/images/plans/plan_03.jpg" class="img-fluid" alt="plan">
+                            <img src="/images/plans/plan_03.jpg" class="img-fluid" alt="Workout generator">
                         </div>
                         <div class="pricing-content">
-                            <h3>CHAMPION PLAN</h3>
-                            <span class="price"></span>
+                            <h3>WORKOUT GENERATOR</h3>
+                            <span class="price">$0.008</span>
                             <ul>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>Unlimited Gym Trainings</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>One full session built for your equipment and focus muscles</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>Unlimited Sauna Usage</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Warm-up, main blocks, and cool-down with set/rep prescriptions</p>
                                 </li>
                                 <li>
-                                    <img src="/images/list_arrow.svg" alt="arrow">
-                                    <p>4 Training Consultations</p>
+                                    <img src="/images/list_arrow.svg" alt="">
+                                    <p>Execution tips on every exercise to reduce injury and improve form</p>
                                 </li>
                             </ul>
                             <a class="theme-btn text-decoration-none d-inline-flex align-items-center" href="/auth/login">
-                                Join Now
+                                Get started
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path

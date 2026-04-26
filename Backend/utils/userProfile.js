@@ -29,6 +29,29 @@ function pickEnum(val, allowed, fallback = "") {
   return hit || fallback;
 }
 
+function profileCompletionPercent(user) {
+  if (!user) return 0;
+  const s = user.stats || {};
+  const p = user.preferences || {};
+  let ok = 0;
+  const total = 12;
+  if (Number(s.weightKg) >= 35) ok += 1;
+  if (Number(s.heightCm) >= 120) ok += 1;
+  if (s.goal && ALLOWED_GOALS.includes(String(s.goal))) ok += 1;
+  if (p.fitnessLevel && ALLOWED_FITNESS.includes(String(p.fitnessLevel))) ok += 1;
+  if (p.activityLevel && ALLOWED_ACTIVITY.includes(String(p.activityLevel))) ok += 1;
+  if (p.dietType && ALLOWED_DIET.includes(String(p.dietType))) ok += 1;
+  const kcal = Number(p.targetCalories);
+  if (Number.isFinite(kcal) && kcal >= 1200 && kcal <= 5000) ok += 1;
+  if (p.mealsPerDay && ALLOWED_MEALS_PER_DAY.includes(String(p.mealsPerDay))) ok += 1;
+  if (p.planStyle && ALLOWED_PLAN_STYLES.includes(String(p.planStyle))) ok += 1;
+  if (p.equipment && ALLOWED_EQUIPMENT.includes(String(p.equipment))) ok += 1;
+  if (p.sessionMinutes && ALLOWED_SESSION_MIN.includes(String(p.sessionMinutes))) ok += 1;
+  const focus = Array.isArray(p.workoutFocus) ? p.workoutFocus : [];
+  if (focus.filter((x) => ALLOWED_MUSCLE.includes(String(x))).length > 0) ok += 1;
+  return Math.round((ok / total) * 100);
+}
+
 function isProfileComplete(user) {
   if (!user) return false;
   const s = user.stats || {};
@@ -122,6 +145,7 @@ module.exports = {
   clamp,
   pickEnum,
   isProfileComplete,
+  profileCompletionPercent,
   goalLabel,
   activityLabel,
   dietLabel,

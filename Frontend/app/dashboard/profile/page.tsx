@@ -1,12 +1,13 @@
 "use client";
 
+import { ProfilePageSkeleton } from "@/components/app-skeletons";
 import ProfilePreferencesModal from "@/components/profile-preferences-modal";
 import ProfilePreferencesForm from "@/components/profile-preferences-form";
 import api from "@/lib/api";
 import { normalizeUser, type AuthUser } from "@/lib/user-normalize";
 import { setAuthUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { Button, Card } from "@heroui/react";
+import { Button, Card, ProgressBar } from "@heroui/react";
 import { Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -16,13 +17,18 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<AuthUser | null>(reduxUser);
   const [modalOpen, setModalOpen] = useState(false);
   const [savedHint, setSavedHint] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await api.get("/users/me");
-    const u = normalizeUser(data as Record<string, unknown>);
-    if (u) {
-      setProfile(u);
-      dispatch(setAuthUser(u));
+    try {
+      const { data } = await api.get("/users/me");
+      const u = normalizeUser(data as Record<string, unknown>);
+      if (u) {
+        setProfile(u);
+        dispatch(setAuthUser(u));
+      }
+    } finally {
+      setInitialized(true);
     }
   }, [dispatch]);
 
@@ -35,6 +41,10 @@ export default function ProfilePage() {
   }, [reduxUser]);
 
   const u = profile;
+
+  if (!initialized) {
+    return <ProfilePageSkeleton />;
+  }
 
   return (
     <section className="space-y-5 pb-20 md:pb-4">
@@ -54,20 +64,17 @@ export default function ProfilePage() {
       </div>
 
       <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)]">
-        <Card.Content className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-slate-400">AI profile:</span>
-          {u?.profileComplete ? (
-            <span className="font-medium text-emerald-400">Complete</span>
-          ) : (
-            <span className="font-medium text-amber-400">Incomplete — save the form when everything is set</span>
-          )}
-          {savedHint ? <span className="text-emerald-400/90">Saved.</span> : null}
+        <Card.Content className="space-y-3">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-slate-300">Profile completion</span>
+            <span className="tabular-nums text-slate-400">{u?.profileCompletionPercent ?? 0}%</span>
+          </div>
+          <ProgressBar value={u?.profileCompletionPercent ?? 0} />
+          {savedHint ? <p className="text-sm text-emerald-400/90">Saved.</p> : null}
         </Card.Content>
       </Card>
 
-      {!u ? (
-        <p className="text-sm text-slate-400">Loading profile…</p>
-      ) : (
+      {u ? (
         <Card className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]">
           <Card.Content className="space-y-2">
             <p className="text-sm font-semibold text-white">Your details</p>
@@ -84,6 +91,8 @@ export default function ProfilePage() {
             />
           </Card.Content>
         </Card>
+      ) : (
+        <p className="text-sm text-slate-400">Could not load profile.</p>
       )}
 
       <ProfilePreferencesModal

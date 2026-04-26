@@ -1,8 +1,10 @@
 const User = require("../models/User");
+const { recordWorkoutDayProgress } = require("../services/savedPlansService");
 const {
   clamp,
   pickEnum,
   isProfileComplete,
+  profileCompletionPercent,
   ALLOWED_GOALS,
   ALLOWED_FITNESS,
   ALLOWED_ACTIVITY,
@@ -21,6 +23,7 @@ const getProfile = async (req, res) => {
     ...user,
     id: user._id,
     profileComplete: isProfileComplete(user),
+    profileCompletionPercent: profileCompletionPercent(user),
   });
 };
 
@@ -94,7 +97,35 @@ const updateProfile = async (req, res) => {
     ...out,
     id: out._id,
     profileComplete: isProfileComplete(out),
+    profileCompletionPercent: profileCompletionPercent(out),
   });
 };
 
-module.exports = { getProfile, updateProfile };
+const recordWorkoutProgress = async (req, res) => {
+  try {
+    const row = await recordWorkoutDayProgress(req.user.id, req.body || {});
+    const user = await User.findById(req.user.id).select("-passwordHash -refreshTokens").lean();
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    return res.json({
+      success: true,
+      data: row,
+      user: {
+        ...user,
+        id: user._id,
+        profileComplete: isProfileComplete(user),
+        profileCompletionPercent: profileCompletionPercent(user),
+      },
+    });
+  } catch (e) {
+    if (e.code === "NO_SAVED_WORKOUT") {
+      return res.status(400).json({
+        success: false,
+        message: "Generate and save a workout first, then mark progress.",
+      });
+    }
+    console.error("recordWorkoutProgress:", e.message);
+    return res.status(500).json({ success: false, message: "Could not update workout progress." });
+  }
+};
+
+module.exports = { getProfile, updateProfile, recordWorkoutProgress };

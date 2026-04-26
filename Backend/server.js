@@ -10,6 +10,8 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const resourceRoutes = require("./routes/resourceRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const walletRoutes = require("./routes/walletRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -31,6 +33,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/wallet", walletRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use(errorHandler);
 
 app.listen(env.port, () => {
